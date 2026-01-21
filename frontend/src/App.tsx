@@ -1,6 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import FormList from './pages/FormList';
-import FormEditor from './pages/FormEditor';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import FormList from "./pages/FormList";
+import FormEditor from "./pages/FormEditor";
 
 function App() {
   return (
@@ -16,4 +21,3 @@ function App() {
 }
 
 export default App;
-

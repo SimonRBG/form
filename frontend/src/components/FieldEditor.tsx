@@ -1,5 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Field, FieldType, CreateFieldDto, FieldOption } from '../types';
+import { useState, useEffect } from "react";
+import { Field, FieldType, CreateFieldDto, FieldOption } from "../types";
+import { Button } from "@/components/ui/button";
+import { CiTrash } from "react-icons/ci";
+import { IoMdAdd } from "react-icons/io";
+import { Checkbox } from "@/components/ui/checkbox";
+import AlertDialog from "@/components/AlertDialog";
 
 interface FieldEditorProps {
   field: Field | null;
@@ -7,13 +12,21 @@ interface FieldEditorProps {
   onCancel: () => void;
 }
 
-export default function FieldEditor({ field, onSave, onCancel }: FieldEditorProps) {
-  const [fieldType, setFieldType] = useState<FieldType>(field?.type || FieldType.TEXT);
-  const [label, setLabel] = useState(field?.label || '');
+export default function FieldEditor({
+  field,
+  onSave,
+  onCancel,
+}: FieldEditorProps) {
+  const [fieldType, setFieldType] = useState<FieldType>(
+    field?.type || FieldType.TEXT,
+  );
+  const [label, setLabel] = useState(field?.label || "");
   const [required, setRequired] = useState(field?.required || false);
   const [options, setOptions] = useState<FieldOption[]>(field?.options || []);
-  const [newOptionLabel, setNewOptionLabel] = useState('');
-  const [newOptionValue, setNewOptionValue] = useState('');
+  const [newOptionLabel, setNewOptionLabel] = useState("");
+  const [newOptionValue, setNewOptionValue] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
 
   useEffect(() => {
     if (field) {
@@ -30,8 +43,8 @@ export default function FieldEditor({ field, onSave, onCancel }: FieldEditorProp
         ...options,
         { label: newOptionLabel.trim(), value: newOptionValue.trim() },
       ]);
-      setNewOptionLabel('');
-      setNewOptionValue('');
+      setNewOptionLabel("");
+      setNewOptionValue("");
     }
   };
 
@@ -41,12 +54,14 @@ export default function FieldEditor({ field, onSave, onCancel }: FieldEditorProp
 
   const handleSave = () => {
     if (!label.trim()) {
-      alert('Label is required');
+      setAlertMessage("Label is required");
+      setShowAlert(true);
       return;
     }
 
     if (fieldType === FieldType.DROPDOWN && options.length === 0) {
-      alert('At least one option is required for dropdown fields');
+      setAlertMessage("At least one option is required for dropdown fields");
+      setShowAlert(true);
       return;
     }
 
@@ -65,7 +80,7 @@ export default function FieldEditor({ field, onSave, onCancel }: FieldEditorProp
 
   return (
     <div className="field-editor">
-      <h3>{field ? 'Edit Field' : 'Add Field'}</h3>
+      <h3>{field ? "Edit Field" : "Add Field"}</h3>
 
       <div className="form-group">
         <label htmlFor="field-type">Field Type *</label>
@@ -93,13 +108,16 @@ export default function FieldEditor({ field, onSave, onCancel }: FieldEditorProp
         />
       </div>
 
-      <div className="form-group">
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={required}
-            onChange={(e) => setRequired(e.target.checked)}
-          />
+      <div className="form-group flex items-start gap-2 h-24">
+        <Checkbox
+          className="h-4 w-4"
+          id="required"
+          checked={required}
+          onCheckedChange={(checked) =>
+            setRequired(checked === "indeterminate" ? false : checked)
+          }
+        />
+        <label className="text-sm text-4 h-4" htmlFor="required">
           Required field
         </label>
       </div>
@@ -112,12 +130,12 @@ export default function FieldEditor({ field, onSave, onCancel }: FieldEditorProp
               <div key={index} className="option-item">
                 <span className="option-label">{option.label}</span>
                 <code className="option-value">{option.value}</code>
-                <button
+                <Button
                   onClick={() => handleRemoveOption(index)}
                   className="btn btn-sm btn-danger"
                 >
-                  Remove
-                </button>
+                  <CiTrash />
+                </Button>
               </div>
             ))}
           </div>
@@ -137,26 +155,32 @@ export default function FieldEditor({ field, onSave, onCancel }: FieldEditorProp
               placeholder="Option value"
               className="form-control"
             />
-            <button
+            <Button
               onClick={handleAddOption}
               disabled={!newOptionLabel.trim() || !newOptionValue.trim()}
               className="btn btn-secondary"
             >
-              Add Option
-            </button>
+              <IoMdAdd />
+            </Button>
           </div>
         </div>
       )}
 
       <div className="modal-actions">
-        <button onClick={onCancel} className="btn btn-secondary">
+        <Button onClick={onCancel} className="btn btn-secondary">
           Cancel
-        </button>
-        <button onClick={handleSave} className="btn btn-primary">
-          {field ? 'Update Field' : 'Add Field'}
-        </button>
+        </Button>
+        <Button onClick={handleSave} className="btn btn-primary">
+          {field ? "Update Field" : "Add Field"}
+        </Button>
       </div>
+
+      {showAlert && (
+        <AlertDialog
+          message={alertMessage}
+          onClose={() => setShowAlert(false)}
+        />
+      )}
     </div>
   );
 }
-

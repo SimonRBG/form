@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 import {
   Form,
   Field,
@@ -8,16 +8,17 @@ import {
   UpdateFieldDto,
   GenerateFormDto,
   GeneratedFormResponse,
-} from '../types';
+} from "../types";
 
 // Configure base API URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 // Create axios instance
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 30000, // 30 seconds
 });
@@ -30,7 +31,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Add response interceptor for error handling
@@ -39,9 +40,9 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('[API Error]', error.response?.data || error.message);
+    console.error("[API Error]", error.response?.data || error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 // Forms API
@@ -50,7 +51,7 @@ const formsApi = {
    * Get all forms
    */
   list: async (): Promise<Form[]> => {
-    const response = await axiosInstance.get<Form[]>('/forms');
+    const response = await axiosInstance.get<Form[]>("/forms");
     return response.data;
   },
 
@@ -66,7 +67,7 @@ const formsApi = {
    * Create a new form
    */
   create: async (data: CreateFormDto): Promise<Form> => {
-    const response = await axiosInstance.post<Form>('/forms', data);
+    const response = await axiosInstance.post<Form>("/forms", data);
     return response.data;
   },
 
@@ -75,6 +76,16 @@ const formsApi = {
    */
   update: async (id: string, data: UpdateFormDto): Promise<Form> => {
     const response = await axiosInstance.patch<Form>(`/forms/${id}`, data);
+    return response.data;
+  },
+
+  sync: async (id: string, form: Form): Promise<Form> => {
+    const response = await axiosInstance.post<Form>(`/forms/${id}/sync`, {
+      name: form.name,
+      slug: form.slug,
+      fields: form.fields || [],
+      fieldOrder: form.fieldOrder,
+    });
     return response.data;
   },
 
@@ -102,7 +113,7 @@ const fieldsApi = {
   create: async (formId: string, data: CreateFieldDto): Promise<Field> => {
     const response = await axiosInstance.post<Field>(
       `/forms/${formId}/fields`,
-      data
+      data,
     );
     return response.data;
   },
@@ -113,11 +124,11 @@ const fieldsApi = {
   update: async (
     formId: string,
     fieldId: string,
-    data: UpdateFieldDto
+    data: UpdateFieldDto,
   ): Promise<Field> => {
     const response = await axiosInstance.patch<Field>(
       `/forms/${formId}/fields/${fieldId}`,
-      data
+      data,
     );
     return response.data;
   },
@@ -135,10 +146,12 @@ const aiApi = {
   /**
    * Generate form structure from natural language description
    */
-  generateForm: async (data: GenerateFormDto): Promise<GeneratedFormResponse> => {
+  generateForm: async (
+    data: GenerateFormDto,
+  ): Promise<GeneratedFormResponse> => {
     const response = await axiosInstance.post<GeneratedFormResponse>(
-      '/ai/generate-form',
-      data
+      "/ai/generate-form",
+      data,
     );
     return response.data;
   },
@@ -153,4 +166,3 @@ export const api = {
 
 // Export axios instance for custom usage if needed
 export { axiosInstance };
-

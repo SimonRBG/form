@@ -1,32 +1,38 @@
-import { useState } from 'react';
-import { CreateFieldDto, FieldType, GeneratedFormResponse } from '../types';
-import { api } from '../services/api';
+import { useState } from "react";
+import { CreateFieldDto, GeneratedFormResponse } from "../types";
+import { aiActions } from "../actions/aiActions";
+import { Button } from "@/components/ui/button";
+import { getFieldTypeIcon } from "@/util/FieldUtil";
 
 interface AIGeneratorProps {
   onGenerate: (fields: CreateFieldDto[]) => void;
   onCancel: () => void;
 }
 
-export default function AIGenerator({ onGenerate, onCancel }: AIGeneratorProps) {
-  const [description, setDescription] = useState('');
+export default function AIGenerator({
+  onGenerate,
+  onCancel,
+}: AIGeneratorProps) {
+  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<GeneratedFormResponse | null>(null);
 
   const handleGenerate = async () => {
     if (!description.trim()) {
-      setError('Please enter a description');
+      setError("Please enter a description");
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      const result = await api.ai.generateForm({ description: description.trim() });
+      const result = await aiActions.generateForm({
+        description: description.trim(),
+      });
       setPreview(result);
     } catch (err) {
-      setError('Failed to generate form. Please try again.');
-      console.error('Error generating form:', err);
+      setError(err instanceof Error ? err.message : "Failed to generate form. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -38,24 +44,11 @@ export default function AIGenerator({ onGenerate, onCancel }: AIGeneratorProps) 
     }
   };
 
-  const getFieldTypeIcon = (type: FieldType) => {
-    switch (type) {
-      case FieldType.TEXT:
-        return '📝';
-      case FieldType.NUMBER:
-        return '🔢';
-      case FieldType.DROPDOWN:
-        return '📋';
-      default:
-        return '❓';
-    }
-  };
-
   return (
     <div className="ai-generator">
       <h3>AI Form Generator</h3>
       <p className="help-text">
-        Describe the form you want to create in natural language, and AI will generate the fields for you.
+        Describe the form you want to create in natural language, and <strong>AI will generate and append</strong>  the fields for you.
       </p>
 
       <div className="form-group">
@@ -71,24 +64,24 @@ export default function AIGenerator({ onGenerate, onCancel }: AIGeneratorProps) 
         />
       </div>
 
-      {error && (
-        <div className="alert alert-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="alert alert-error">{error}</div>}
 
       {!preview && (
         <div className="modal-actions">
-          <button onClick={onCancel} disabled={loading} className="btn btn-secondary">
+          <Button
+            onClick={onCancel}
+            disabled={loading}
+            className="btn btn-secondary"
+          >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleGenerate}
             disabled={loading || !description.trim()}
-            className="btn btn-primary"
+            className="btn btn-ai"
           >
-            {loading ? 'Generating...' : 'Generate'}
-          </button>
+            {loading ? "Generating..." : "Generate"}
+          </Button>
         </div>
       )}
 
@@ -99,16 +92,20 @@ export default function AIGenerator({ onGenerate, onCancel }: AIGeneratorProps) 
             <div className="field-preview-list">
               {preview.fields.map((field, index) => (
                 <div key={index} className="field-preview-item">
-                  <div className="field-icon">{getFieldTypeIcon(field.type)}</div>
+                  <div className="field-icon">
+                    {getFieldTypeIcon(field.type)}
+                  </div>
                   <div className="field-details">
                     <div className="field-label">
                       {field.label}
-                      {field.required && <span className="required-badge">*</span>}
+                      {field.required && (
+                        <span className="required-badge">*</span>
+                      )}
                     </div>
                     <div className="field-type">{field.type}</div>
                     {field.options && field.options.length > 0 && (
                       <div className="field-options">
-                        Options: {field.options.map(o => o.label).join(', ')}
+                        Options: {field.options.map((o) => o.label).join(", ")}
                       </div>
                     )}
                   </div>
@@ -118,22 +115,21 @@ export default function AIGenerator({ onGenerate, onCancel }: AIGeneratorProps) 
           </div>
 
           <div className="modal-actions">
-            <button
+            <Button
               onClick={() => {
                 setPreview(null);
-                setDescription('');
+                setDescription("");
               }}
               className="btn btn-secondary"
             >
               Generate Again
-            </button>
-            <button onClick={handleApply} className="btn btn-primary">
+            </Button>
+            <Button onClick={handleApply} className="btn btn-primary">
               Apply Fields
-            </button>
+            </Button>
           </div>
         </>
       )}
     </div>
   );
 }
-

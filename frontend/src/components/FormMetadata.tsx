@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface FormMetadataProps {
   name: string;
@@ -7,40 +7,53 @@ interface FormMetadataProps {
   disabled?: boolean;
 }
 
-export default function FormMetadata({ name, slug, onSave, disabled }: FormMetadataProps) {
+export default function FormMetadata({
+  name,
+  slug,
+  onSave,
+  disabled,
+}: FormMetadataProps) {
   const [formName, setFormName] = useState(name);
   const [formSlug, setFormSlug] = useState(slug);
-  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     setFormName(name);
     setFormSlug(slug);
   }, [name, slug]);
 
-  useEffect(() => {
-    setHasChanges(formName !== name || formSlug !== slug);
-  }, [formName, formSlug, name, slug]);
-
   const generateSlug = (text: string): string => {
     return text
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   };
 
   const handleNameChange = (newName: string) => {
+    const trimmedName = newName.trim();
     setFormName(newName);
+    
     // Auto-generate slug if slug is empty or was auto-generated
-    if (!formSlug || formSlug === generateSlug(formName)) {
-      setFormSlug(generateSlug(newName));
+    const newSlug = !formSlug || formSlug === generateSlug(formName) 
+      ? generateSlug(trimmedName)
+      : formSlug;
+    
+    setFormSlug(newSlug);
+    
+    // Update parent immediately with new values
+    if (trimmedName && newSlug.trim()) {
+      onSave(trimmedName, newSlug.trim());
     }
   };
 
-  const handleSave = () => {
-    if (formName.trim() && formSlug.trim()) {
-      onSave(formName.trim(), formSlug.trim());
+  const handleSlugChange = (newSlug: string) => {
+    const trimmedSlug = newSlug.trim();
+    setFormSlug(newSlug);
+    
+    // Update parent immediately with new values
+    if (formName.trim() && trimmedSlug) {
+      onSave(formName.trim(), trimmedSlug);
     }
   };
 
@@ -48,7 +61,9 @@ export default function FormMetadata({ name, slug, onSave, disabled }: FormMetad
     <div className="form-metadata-section">
       <h2>Form Details</h2>
       <div className="form-group">
-        <label htmlFor="form-name">Form Name *</label>
+        <label htmlFor="form-name">
+          Form Name <span className="required-badge">*</span>
+        </label>
         <input
           id="form-name"
           type="text"
@@ -61,12 +76,14 @@ export default function FormMetadata({ name, slug, onSave, disabled }: FormMetad
       </div>
 
       <div className="form-group">
-        <label htmlFor="form-slug">Slug *</label>
+        <label htmlFor="form-slug">
+          Slug <span className="required-badge">*</span>
+        </label>
         <input
           id="form-slug"
           type="text"
           value={formSlug}
-          onChange={(e) => setFormSlug(e.target.value)}
+          onChange={(e) => handleSlugChange(e.target.value)}
           disabled={disabled}
           placeholder="form-slug"
           className="form-control"
@@ -75,17 +92,6 @@ export default function FormMetadata({ name, slug, onSave, disabled }: FormMetad
           URL-friendly identifier (lowercase, hyphens, no spaces)
         </small>
       </div>
-
-      {hasChanges && (
-        <button
-          onClick={handleSave}
-          disabled={disabled || !formName.trim() || !formSlug.trim()}
-          className="btn btn-primary"
-        >
-          Save Form Details
-        </button>
-      )}
     </div>
   );
 }
-

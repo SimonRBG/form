@@ -6,14 +6,18 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Form } from './entities/form.entity';
+import { Field } from '../fields/entities/field.entity';
 import { CreateFormDto } from './dto/create-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
+import { SyncFormDto } from './dto/sync-form.dto';
 
 @Injectable()
 export class FormsService {
   constructor(
     @InjectRepository(Form)
     private readonly formRepository: Repository<Form>,
+    @InjectRepository(Field)
+    private readonly fieldRepository: Repository<Field>,
   ) {}
 
   async create(createFormDto: CreateFormDto): Promise<Form> {
@@ -102,6 +106,90 @@ export class FormsService {
     const form = await this.findOne(formId);
     form.fieldOrder = fieldOrder;
     await this.formRepository.save(form);
+  }
+
+  async syncForm(id: string, syncFormDto: SyncFormDto): Promise<Form> {
+    const form = await this.findOne(id);
+
+    // Update form metadata
+    if (syncFormDto.slug && syncFormDto.slug !== form.slug) {
+      const existingForm = await this.formRepository.findOne({
+        where: { slug: syncFormDto.slug },
+      });
+      if (existingForm && existingForm.id !== id) {
+        throw new ConflictException(
+          `Form with slug "${syncFormDto.slug}" already exists`,
+        );
+      }
+    }
+
+    form.name = syncFormDto.name;
+    form.slug = syncFormDto.slug;
+
+    // Get current field IDs
+    const currentFieldIds = new Set(form.fields?.map((f) => f.id) || []);
+    const newFieldIds = new Set(
+      syncFormDto.fields
+        .filter((f) => f.id && !f.id.startsWith('temp-'))
+        .map((f) => f.id),
+    );
+
+    // Delete fields that are no longer present
+    const fieldsToDelete = Array.from(currentFieldIds).filter(
+      (id) => !newFieldIds.has(id),
+    );
+    if (fieldsToDelete.length > 0) {
+      await this.fieldRepository.delete(fieldsToDelete);
+    }
+
+    const idMapping = new Map<string, string>();
+
+    // Create or update fields
+    const savedFields: Field[] = [];
+    for (const fieldDto of syncFormDto.fields) {
+      if (!fieldDto.id || fieldDto.id.startsWith('temp-')) {
+        // Create new field
+        const newField = this.fieldRepository.create({
+          formId: form.id,
+          type: fieldDto.type as any,
+          label: fieldDto.label,
+          required: fieldDto.required,
+          options: fieldDto.options,
+        });
+        const saved = await this.fieldRepository.save(newField);
+        savedFields.push(saved);
+        if (fieldDto.id) {
+          idMapping.set(fieldDto.id, saved.id);
+        }
+      } else {
+        // Update existing field
+        const existingField = await this.fieldRepository.findOne({
+          where: { id: fieldDto.id },
+        });
+        if (existingField) {
+          existingField.type = fieldDto.type as any;
+          existingField.label = fieldDto.label;
+          existingField.required = fieldDto.required;
+          existingField.options = fieldDto.options;
+          const saved = await this.fieldRepository.save(existingField);
+          savedFields.push(saved);
+        }
+      }
+    }
+
+    // Update field order with real IDs
+    form.fieldOrder = syncFormDto.fieldOrder.map(
+      (id) => idMapping.get(id) || id,
+    );
+
+    await this.formRepository.update(id, {
+      name: form.name,
+      slug: form.slug,
+      fieldOrder: form.fieldOrder,
+    });
+
+    // Return updated form with all fields
+    return this.findOne(id);
   }
 }
 

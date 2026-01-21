@@ -1,24 +1,49 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Form, Field, CreateFieldDto } from '../types';
-import { api } from '../services/api';
-import FormMetadata from '../components/FormMetadata';
-import FieldList from '../components/FieldList';
-import FieldEditor from '../components/FieldEditor';
-import AIGenerator from '../components/AIGenerator';
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { Field, CreateFieldDto, Form } from "../types";
+import { useFormStore } from "../stores/form";
+import { formActions } from "../actions/formActions";
+import FormMetadata from "../components/FormMetadata";
+import FieldList from "../components/FieldList";
+import FieldEditor from "../components/FieldEditor";
+import AIGenerator from "../components/AIGenerator";
+import ConfirmDialog from "../components/ConfirmDialog";
+import { Button } from "@/components/ui/button";
+import { IoMdAdd, IoMdArrowBack } from "react-icons/io";
+import { FaMagic } from "react-icons/fa";
+import { areFormsEqual } from "@/util/FormUtil";
 
 export default function FormEditor() {
   const navigate = useNavigate();
-  const isNew = location.pathname === '/forms/new';
-  const id = isNew ? null : location.pathname.split('/')[2];
+  const isNew = location.pathname === "/forms/new";
+  const id = isNew ? null : location.pathname.split("/")[2];
 
-  const [form, setForm] = useState<Form | null>(null);
+  const {
+    form,
+    initialForm,
+    setForm,
+    updateMetadata,
+    addField,
+    updateField,
+    deleteField,
+    reorderFields,
+    clearForm,
+  } = useFormStore();
+
+  // Compute hasUnsavedChanges locally
+  const hasUnsavedChanges = useMemo(
+    () => !areFormsEqual(form, initialForm),
+    [form, initialForm],
+  );
+
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showFieldEditor, setShowFieldEditor] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [editingField, setEditingField] = useState<Field | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [fieldToDelete, setFieldToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isNew && id) {
@@ -26,9 +51,9 @@ export default function FormEditor() {
     } else {
       // Initialize empty form for new form
       setForm({
-        id: '',
-        name: '',
-        slug: '',
+        id: "",
+        name: "",
+        slug: "",
         published: false,
         fieldOrder: [],
         fields: [],
@@ -36,45 +61,51 @@ export default function FormEditor() {
         updatedAt: new Date().toISOString(),
       });
     }
+
+    // Cleanup on unmount
+    return () => {
+      clearForm();
+    };
   }, [id, isNew]);
 
   const loadForm = async (formId: string) => {
     try {
       setLoading(true);
-      const data = await api.forms.get(formId);
-      setForm(data);
       setError(null);
+      await formActions.loadForm(formId);
     } catch (err) {
-      setError('Failed to load form');
-      console.error('Error loading form:', err);
+      setError("Failed to load form");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveMetadata = async (name: string, slug: string) => {
-    if (!form) return;
+  const handleSaveMetadata = (name: string, slug: string) => {
+    updateMetadata(name, slug);
+  };
+
+  const handleCreateForm = async () => {
+    if (!form || !form.name.trim() || !form.slug.trim()) {
+      setError("Form name and slug are required");
+      return;
+    }
 
     try {
       setSaving(true);
-      if (isNew) {
-        const newForm = await api.forms.create({ name, slug });
-        setForm(newForm);
-        navigate(`/forms/${newForm.id}/edit`, { replace: true });
-      } else {
-        const updatedForm = await api.forms.update(form.id, { name, slug });
-        setForm(updatedForm);
-      }
       setError(null);
+      const newForm = await formActions.createForm({
+        name: form.name.trim(),
+        slug: form.slug.trim(),
+      });
+      navigate(`/forms/${newForm.id}/edit`, { replace: true });
     } catch (err) {
-      setError('Failed to save form');
-      console.error('Error saving form:', err);
+      setError("Failed to create form");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleAddField = () => {
+  const handleAddFieldClick = () => {
     setEditingField(null);
     setShowFieldEditor(true);
   };
@@ -84,103 +115,185 @@ export default function FormEditor() {
     setShowFieldEditor(true);
   };
 
-  const handleSaveField = async (fieldData: CreateFieldDto) => {
+  const handleSaveField = (fieldData: CreateFieldDto) => {
+    if (!form || isNew) return;
+
+    if (editingField) {
+      // Update existing field in store
+      updateField(editingField.id, fieldData);
+    } else {
+      // Add new field to store with temporary ID
+      const tempId = `temp-${Date.now()}`;
+      const newField: Field = {
+        id: tempId,
+        formId: form.id,
+        ...fieldData,
+      };
+      addField(newField);
+    }
+    setShowFieldEditor(false);
+    setEditingField(null);
+  };
+
+  const handleDeleteField = (fieldId: string) => {
+    setFieldToDelete(fieldId);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmDeleteField = () => {
+    if (fieldToDelete) {
+      deleteField(fieldToDelete);
+      setShowConfirmDialog(false);
+      setFieldToDelete(null);
+    }
+  };
+
+  const cancelDeleteField = () => {
+    setShowConfirmDialog(false);
+    setFieldToDelete(null);
+  };
+
+  const handleReorderFields = (newOrder: string[]) => {
+    reorderFields(newOrder);
+  };
+
+  const handleSaveAll = async () => {
     if (!form || isNew) return;
 
     try {
-      if (editingField) {
-        // Update existing field
-        const updatedField = await api.fields.update(form.id, editingField.id, fieldData);
-        setForm({
-          ...form,
-          fields: form.fields?.map(f => f.id === updatedField.id ? updatedField : f),
-        });
-      } else {
-        // Create new field
-        const newField = await api.fields.create(form.id, fieldData);
-        setForm({
-          ...form,
-          fields: [...(form.fields || []), newField],
-          fieldOrder: [...form.fieldOrder, newField.id],
-        });
-      }
-      setShowFieldEditor(false);
-      setEditingField(null);
+      setSaving(true);
       setError(null);
+      await formActions.saveForm(form.id, form);
     } catch (err) {
-      setError('Failed to save field');
-      console.error('Error saving field:', err);
-    }
-  };
-
-  const handleDeleteField = async (fieldId: string) => {
-    if (!form || !confirm('Are you sure you want to delete this field?')) {
-      return;
-    }
-
-    try {
-      await api.fields.delete(form.id, fieldId);
-      setForm({
-        ...form,
-        fields: form.fields?.filter(f => f.id !== fieldId),
-        fieldOrder: form.fieldOrder.filter(id => id !== fieldId),
-      });
-      setError(null);
-    } catch (err) {
-      setError('Failed to delete field');
-      console.error('Error deleting field:', err);
-    }
-  };
-
-  const handleReorderFields = async (newOrder: string[]) => {
-    if (!form) return;
-
-    try {
-      const updatedForm = await api.forms.update(form.id, { fieldOrder: newOrder });
-      setForm(updatedForm);
-      setError(null);
-    } catch (err) {
-      setError('Failed to reorder fields');
-      console.error('Error reordering fields:', err);
+      setError("Failed to save changes");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handlePublish = async () => {
     if (!form) return;
 
+    // Save all changes before publishing
+    if (hasUnsavedChanges) {
+      await handleSaveAll();
+    }
+
     try {
       setSaving(true);
-      const updatedForm = await api.forms.publish(form.id);
-      setForm(updatedForm);
       setError(null);
+      await formActions.publishForm(form.id);
     } catch (err) {
-      setError('Failed to publish form');
-      console.error('Error publishing form:', err);
+      setError("Failed to publish form");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleAIGenerate = async (fields: CreateFieldDto[]) => {
+  const handleAIGenerate = (fields: CreateFieldDto[]) => {
     if (!form || isNew) return;
 
-    try {
-      // Create all generated fields
-      const createdFields = await Promise.all(
-        fields.map(fieldData => api.fields.create(form.id, fieldData))
-      );
+    // Add generated fields to store with temp IDs
+    fields.forEach((fieldData, index) => {
+      const tempField: Field = {
+        id: `temp-ai-${Date.now()}-${index}`,
+        formId: form.id,
+        ...fieldData,
+      };
+      addField(tempField);
+    });
 
-      setForm({
-        ...form,
-        fields: [...(form.fields || []), ...createdFields],
-        fieldOrder: [...form.fieldOrder, ...createdFields.map(f => f.id)],
-      });
-      setShowAIGenerator(false);
-      setError(null);
-    } catch (err) {
-      setError('Failed to generate fields');
-      console.error('Error generating fields:', err);
-    }
+    setShowAIGenerator(false);
+  };
+
+  const renderNewFormVariant = () => {
+    return (
+      <div className="flex justify-end">
+        <Button
+          onClick={handleCreateForm}
+          variant="default"
+          className="btn btn-primary"
+        >
+          Create Form
+        </Button>
+      </div>
+    );
+  };
+
+  const renderEditFormVariant = (form: Form) => {
+    return (
+      <>
+        <div className="section-header">
+          <h2>Fields</h2>
+          <div className="action-buttons">
+            <Button
+              onClick={() => setShowAIGenerator(true)}
+              variant="secondary"
+              className="btn btn-ai"
+            >
+              <FaMagic />
+            </Button>
+            <Button
+              onClick={handleAddFieldClick}
+              variant="default"
+              className="btn btn-secondary"
+            >
+              <IoMdAdd />
+            </Button>
+          </div>
+        </div>
+
+        <FieldList
+          fields={form.fields || []}
+          fieldOrder={form.fieldOrder}
+          onEdit={handleEditField}
+          onDelete={handleDeleteField}
+          onReorder={handleReorderFields}
+        />
+      </>
+    );
+  };
+
+  const renderFieldEditor = (editingField: Field | null) => {
+    return (<div
+      className="modal-overlay"
+      onClick={() => setShowFieldEditor(false)}
+    >
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <FieldEditor
+          field={editingField}
+          onSave={handleSaveField}
+          onCancel={() => {
+            setShowFieldEditor(false);
+            setEditingField(null);
+          }}
+        />
+      </div>
+    </div>)
+  };
+
+  const renderAIGenerator = () => {
+    return (<div
+      className="modal-overlay"
+      onClick={() => setShowAIGenerator(false)}
+    >
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <AIGenerator
+          onGenerate={handleAIGenerate}
+          onCancel={() => setShowAIGenerator(false)}
+        />
+      </div>
+    </div>)
+  };
+
+  const renderConfirmDialog = () => {
+    return (
+      <ConfirmDialog
+        message="Are you sure you want to delete this field?"
+        onConfirm={confirmDeleteField}
+        onCancel={cancelDeleteField}
+      />
+    );
   };
 
   if (loading) {
@@ -202,28 +315,39 @@ export default function FormEditor() {
   return (
     <div className="container">
       <div className="page-header">
-        <h1>{isNew ? 'Create Form' : 'Edit Form'}</h1>
+        <h1>{isNew ? "Create Form" : "Edit Form"}</h1>
         <div className="action-buttons">
-          <button onClick={() => navigate('/')} className="btn btn-secondary">
-            Back to List
-          </button>
+          <Button
+            onClick={() => navigate("/")}
+            variant="secondary"
+            className="btn btn-secondary"
+          >
+            <IoMdArrowBack />
+          </Button>
           {!isNew && (
-            <button
-              onClick={handlePublish}
-              disabled={saving || form.published}
-              className="btn btn-success"
-            >
-              {form.published ? 'Published' : 'Publish'}
-            </button>
+            <>
+              <Button
+                onClick={handleSaveAll}
+                disabled={saving || !hasUnsavedChanges}
+                variant="default"
+                className="btn btn-secondary"
+              >
+                Save
+              </Button>
+              <Button
+                onClick={handlePublish}
+                disabled={saving || form.published}
+                variant="default"
+                className="btn btn-primary"
+              >
+                {form.published ? "Published" : "Publish"}
+              </Button>
+            </>
           )}
         </div>
       </div>
 
-      {error && (
-        <div className="alert alert-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="alert alert-error">{error}</div>}
 
       <div className="editor-layout">
         <div className="editor-main">
@@ -234,61 +358,14 @@ export default function FormEditor() {
             disabled={saving}
           />
 
-          {!isNew && (
-            <>
-              <div className="section-header">
-                <h2>Fields</h2>
-                <div className="action-buttons">
-                  <button
-                    onClick={() => setShowAIGenerator(true)}
-                    className="btn btn-secondary"
-                  >
-                    AI Generate
-                  </button>
-                  <button onClick={handleAddField} className="btn btn-primary">
-                    Add Field
-                  </button>
-                </div>
-              </div>
-
-              <FieldList
-                fields={form.fields || []}
-                fieldOrder={form.fieldOrder}
-                onEdit={handleEditField}
-                onDelete={handleDeleteField}
-                onReorder={handleReorderFields}
-              />
-            </>
-          )}
+          {isNew && renderNewFormVariant()}
+          {!isNew && renderEditFormVariant(form)}
         </div>
 
-        {showFieldEditor && (
-          <div className="modal-overlay" onClick={() => setShowFieldEditor(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <FieldEditor
-                field={editingField}
-                onSave={handleSaveField}
-                onCancel={() => {
-                  setShowFieldEditor(false);
-                  setEditingField(null);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {showAIGenerator && (
-          <div className="modal-overlay" onClick={() => setShowAIGenerator(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <AIGenerator
-                onGenerate={handleAIGenerate}
-                onCancel={() => setShowAIGenerator(false)}
-              />
-            </div>
-          </div>
-        )}
+        {showFieldEditor && renderFieldEditor(editingField)}
+        {showAIGenerator && renderAIGenerator()}
+        {showConfirmDialog && renderConfirmDialog()}
       </div>
     </div>
   );
 }
-

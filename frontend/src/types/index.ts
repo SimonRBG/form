@@ -1,8 +1,8 @@
 // Field type enum
 export enum FieldType {
-  TEXT = 'text',
-  NUMBER = 'number',
-  DROPDOWN = 'dropdown',
+  TEXT = "text",
+  NUMBER = "number",
+  DROPDOWN = "dropdown",
 }
 
 // Dropdown option interface
@@ -70,4 +70,3 @@ export interface GeneratedFormResponse {
   slug: string;
   fields: CreateFieldDto[];
 }
-

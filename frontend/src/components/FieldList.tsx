@@ -6,17 +6,19 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Field, FieldType } from '../types';
-
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Field, FieldType } from "../types";
+import { Button } from "@/components/ui/button";
+import { CiEdit, CiTrash } from "react-icons/ci";
+import { getFieldTypeIcon } from "@/util/FieldUtil";
 interface FieldListProps {
   fields: Field[];
   fieldOrder: string[];
@@ -31,31 +33,17 @@ interface SortableFieldItemProps {
   onDelete: () => void;
 }
 
-function SortableFieldItem({ field, onEdit, onDelete }: SortableFieldItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: field.id });
+function SortableFieldItem({
+  field,
+  onEdit,
+  onDelete,
+}: SortableFieldItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: field.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  };
-
-  const getFieldTypeIcon = (type: FieldType) => {
-    switch (type) {
-      case FieldType.TEXT:
-        return '📝';
-      case FieldType.NUMBER:
-        return '🔢';
-      case FieldType.DROPDOWN:
-        return '📋';
-      default:
-        return '❓';
-    }
   };
 
   return (
@@ -73,29 +61,36 @@ function SortableFieldItem({ field, onEdit, onDelete }: SortableFieldItemProps) 
           <div className="field-type">{field.type}</div>
           {field.type === FieldType.DROPDOWN && field.options && (
             <div className="field-options">
-              {field.options.length} option{field.options.length !== 1 ? 's' : ''}
+              {field.options.length} option
+              {field.options.length !== 1 ? "s" : ""}
             </div>
           )}
         </div>
       </div>
       <div className="field-actions">
-        <button onClick={onEdit} className="btn btn-sm btn-secondary">
-          Edit
-        </button>
-        <button onClick={onDelete} className="btn btn-sm btn-danger">
-          Delete
-        </button>
+        <Button onClick={onEdit} className="btn btn-sm btn-secondary">
+          <CiEdit />
+        </Button>
+        <Button onClick={onDelete} className="btn btn-sm btn-danger">
+          <CiTrash />
+        </Button>
       </div>
     </div>
   );
 }
 
-export default function FieldList({ fields, fieldOrder, onEdit, onDelete, onReorder }: FieldListProps) {
+export default function FieldList({
+  fields,
+  fieldOrder,
+  onEdit,
+  onDelete,
+  onReorder,
+}: FieldListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -111,7 +106,7 @@ export default function FieldList({ fields, fieldOrder, onEdit, onDelete, onReor
 
   // Create ordered fields array based on fieldOrder
   const orderedFields = fieldOrder
-    .map(id => fields.find(f => f.id === id))
+    .map((id) => fields.find((f) => f.id === id))
     .filter((f): f is Field => f !== undefined);
 
   if (orderedFields.length === 0) {
@@ -146,4 +141,3 @@ export default function FieldList({ fields, fieldOrder, onEdit, onDelete, onReor
     </div>
   );
 }
-
