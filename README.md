@@ -94,6 +94,8 @@ npm run dev:backend
 npm run dev:frontend
 ```
 
+You can open http://localhost:5173 and enjoy the app!
+
 ## Available Scripts
 
 | Command | Description |
