@@ -2,12 +2,12 @@ import {
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
-} from 'class-validator';
+} from "class-validator";
 
 export function IsUniqueOptions(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
-      name: 'isUniqueOptions',
+      name: "isUniqueOptions",
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
@@ -19,10 +19,9 @@ export function IsUniqueOptions(validationOptions?: ValidationOptions) {
           return values.length === uniqueValues.size;
         },
         defaultMessage(args: ValidationArguments) {
-          return 'Dropdown options must have unique values';
+          return "Dropdown options must have unique values";
         },
       },
     });
   };
 }
-

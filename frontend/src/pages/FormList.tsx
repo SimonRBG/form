@@ -51,54 +51,55 @@ export default function FormList() {
   };
 
   const renderFormList = () => {
-    return (<div className="form-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Slug</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {forms.map((form) => (
-            <tr key={form.id}>
-              <td>{form.name}</td>
-              <td>
-                <code>{form.slug}</code>
-              </td>
-              <td>
-                <span
-                  className={`badge ${form.published ? "badge-primary" : "badge-secondary"}`}
-                >
-                  {form.published ? "Published" : "Draft"}
-                </span>
-              </td>
-              <td>{new Date(form.createdAt).toLocaleDateString()}</td>
-              <td>
-                <div className="action-buttons">
-                  <Button
-                    onClick={() => handleEditForm(form.id)}
-                    className="btn btn-sm btn-secondary"
-                  >
-                    <CiEdit />
-                  </Button>
-                  <Button
-                    onClick={() => handleDelete(form.id)}
-                    className="btn btn-sm btn-danger"
-                  >
-                    <CiTrash />
-                  </Button>
-                </div>
-              </td>
+    return (
+      <div className="form-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Slug</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    )
+          </thead>
+          <tbody>
+            {forms.map((form) => (
+              <tr key={form.id}>
+                <td>{form.name}</td>
+                <td>
+                  <code>{form.slug}</code>
+                </td>
+                <td>
+                  <span
+                    className={`badge ${form.published ? "badge-primary" : "badge-secondary"}`}
+                  >
+                    {form.published ? "Published" : "Draft"}
+                  </span>
+                </td>
+                <td>{new Date(form.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <div className="action-buttons">
+                    <Button
+                      onClick={() => handleEditForm(form.id)}
+                      className="btn btn-sm btn-secondary"
+                    >
+                      <CiEdit />
+                    </Button>
+                    <Button
+                      onClick={() => handleDelete(form.id)}
+                      className="btn btn-sm btn-danger"
+                    >
+                      <CiTrash />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   };
 
   const renderConfirmDialog = () => {
@@ -108,7 +109,7 @@ export default function FormList() {
         onConfirm={confirmDelete}
         onCancel={cancelDelete}
       />
-    )
+    );
   };
 
   if (loading) {
@@ -134,7 +135,9 @@ export default function FormList() {
         <div className="empty-state">
           <p>No forms yet. Create your first form to get started!</p>
         </div>
-      ) : renderFormList()}
+      ) : (
+        renderFormList()
+      )}
 
       {showConfirmDialog && renderConfirmDialog()}
     </div>

@@ -5,7 +5,7 @@ import { Form, CreateFormDto } from "../types";
 export const formActions = {
   loadForm: async (formId: string): Promise<void> => {
     const store = useFormStore.getState();
-    
+
     try {
       const data = await api.forms.get(formId);
       store.setForm(data);
@@ -17,7 +17,7 @@ export const formActions = {
 
   createForm: async (data: CreateFormDto): Promise<Form> => {
     const store = useFormStore.getState();
-    
+
     try {
       const newForm = await api.forms.create(data);
       store.setForm(newForm);
@@ -30,7 +30,7 @@ export const formActions = {
 
   saveForm: async (formId: string, form: Form): Promise<Form> => {
     const store = useFormStore.getState();
-    
+
     try {
       const updatedForm = await api.forms.sync(formId, form);
       store.setForm(updatedForm);
@@ -43,7 +43,7 @@ export const formActions = {
 
   publishForm: async (formId: string): Promise<Form> => {
     const store = useFormStore.getState();
-    
+
     try {
       const updatedForm = await api.forms.publish(formId);
       store.setForm(updatedForm);
@@ -54,4 +54,3 @@ export const formActions = {
     }
   },
 };
-

@@ -32,7 +32,11 @@ export default function AIGenerator({
       });
       setPreview(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate form. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to generate form. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -48,7 +52,8 @@ export default function AIGenerator({
     <div className="ai-generator">
       <h3>AI Form Generator</h3>
       <p className="help-text">
-        Describe the form you want to create in natural language, and <strong>AI will generate and append</strong>  the fields for you.
+        Describe the form you want to create in natural language, and{" "}
+        <strong>AI will generate and append</strong> the fields for you.
       </p>
 
       <div className="form-group">

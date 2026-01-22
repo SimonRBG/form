@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException, forwardRef, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Field, FieldType } from './entities/field.entity';
-import { CreateFieldDto } from './dto/create-field.dto';
-import { UpdateFieldDto } from './dto/update-field.dto';
-import { FormsService } from '../forms/forms.service';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  forwardRef,
+  Inject,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Field, FieldType } from "./entities/field.entity";
+import { CreateFieldDto } from "./dto/create-field.dto";
+import { UpdateFieldDto } from "./dto/update-field.dto";
+import { FormsService } from "../forms/forms.service";
 
 @Injectable()
 export class FieldsService {
@@ -18,7 +24,7 @@ export class FieldsService {
   private validateDropdownOptions(options: any[] | null | undefined): void {
     if (!options || options.length === 0) {
       throw new BadRequestException(
-        'Dropdown fields must have at least one option',
+        "Dropdown fields must have at least one option",
       );
     }
 
@@ -26,9 +32,7 @@ export class FieldsService {
     const values = options.map((opt) => opt.value);
     const uniqueValues = new Set(values);
     if (values.length !== uniqueValues.size) {
-      throw new BadRequestException(
-        'Dropdown options must have unique values',
-      );
+      throw new BadRequestException("Dropdown options must have unique values");
     }
   }
 
@@ -87,10 +91,11 @@ export class FieldsService {
 
     // Validate dropdown fields have valid options
     if (finalType === FieldType.DROPDOWN) {
-      const finalOptions = updateFieldDto.options !== undefined 
-        ? updateFieldDto.options 
-        : field.options;
-      
+      const finalOptions =
+        updateFieldDto.options !== undefined
+          ? updateFieldDto.options
+          : field.options;
+
       this.validateDropdownOptions(finalOptions);
     }
 
@@ -118,4 +123,3 @@ export class FieldsService {
     return createdFields;
   }
 }
-

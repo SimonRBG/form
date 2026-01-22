@@ -2,14 +2,14 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Form } from './entities/form.entity';
-import { Field } from '../fields/entities/field.entity';
-import { CreateFormDto } from './dto/create-form.dto';
-import { UpdateFormDto } from './dto/update-form.dto';
-import { SyncFormDto } from './dto/sync-form.dto';
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Form } from "./entities/form.entity";
+import { Field } from "../fields/entities/field.entity";
+import { CreateFormDto } from "./dto/create-form.dto";
+import { UpdateFormDto } from "./dto/update-form.dto";
+import { SyncFormDto } from "./dto/sync-form.dto";
 
 @Injectable()
 export class FormsService {
@@ -37,14 +37,14 @@ export class FormsService {
 
   async findAll(): Promise<Form[]> {
     return this.formRepository.find({
-      order: { createdAt: 'DESC' },
+      order: { createdAt: "DESC" },
     });
   }
 
   async findOne(id: string): Promise<Form> {
     const form = await this.formRepository.findOne({
       where: { id },
-      relations: ['fields'],
+      relations: ["fields"],
     });
 
     if (!form) {
@@ -130,7 +130,7 @@ export class FormsService {
     const currentFieldIds = new Set(form.fields?.map((f) => f.id) || []);
     const newFieldIds = new Set(
       syncFormDto.fields
-        .filter((f) => f.id && !f.id.startsWith('temp-'))
+        .filter((f) => f.id && !f.id.startsWith("temp-"))
         .map((f) => f.id),
     );
 
@@ -147,7 +147,7 @@ export class FormsService {
     // Create or update fields
     const savedFields: Field[] = [];
     for (const fieldDto of syncFormDto.fields) {
-      if (!fieldDto.id || fieldDto.id.startsWith('temp-')) {
+      if (!fieldDto.id || fieldDto.id.startsWith("temp-")) {
         // Create new field
         const newField = this.fieldRepository.create({
           formId: form.id,
@@ -192,4 +192,3 @@ export class FormsService {
     return this.findOne(id);
   }
 }
-

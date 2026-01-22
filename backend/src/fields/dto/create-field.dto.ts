@@ -9,10 +9,10 @@ import {
   MaxLength,
   ValidateIf,
   ArrayMinSize,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { FieldType } from '../entities/field.entity';
-import { IsUniqueOptions } from '../validators/unique-options.validator';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { FieldType } from "../entities/field.entity";
+import { IsUniqueOptions } from "../validators/unique-options.validator";
 
 class DropdownOptionDto {
   @IsString()
@@ -40,11 +40,10 @@ export class CreateFieldDto {
   @ValidateIf((o) => o.type === FieldType.DROPDOWN)
   @IsArray()
   @ArrayMinSize(1, {
-    message: 'Dropdown fields must have at least one option',
+    message: "Dropdown fields must have at least one option",
   })
   @ValidateNested({ each: true })
   @Type(() => DropdownOptionDto)
   @IsUniqueOptions()
   options?: DropdownOptionDto[];
 }
-

@@ -1,7 +1,7 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-import { FieldType } from '../fields/entities/field.entity';
+import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios from "axios";
+import { FieldType } from "../fields/entities/field.entity";
 
 export interface GeneratedField {
   type: FieldType;
@@ -18,17 +18,17 @@ export interface GeneratedForm {
 
 @Injectable()
 export class AiService {
-  private readonly mistralApiUrl = 'https://api.mistral.ai/v1/chat/completions';
+  private readonly mistralApiUrl = "https://api.mistral.ai/v1/chat/completions";
   private readonly apiKey: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('MISTRAL_API_KEY', '');
+    this.apiKey = this.configService.get<string>("MISTRAL_API_KEY", "");
   }
 
   async generateForm(description: string): Promise<GeneratedForm> {
     if (!this.apiKey) {
       throw new HttpException(
-        'Mistral API key is not configured',
+        "Mistral API key is not configured",
         HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
@@ -63,17 +63,17 @@ Rules:
       const response = await axios.post(
         this.mistralApiUrl,
         {
-          model: 'mistral-small-latest',
+          model: "mistral-small-latest",
           messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
           ],
           temperature: 0.3,
-          response_format: { type: 'json_object' },
+          response_format: { type: "json_object" },
         },
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${this.apiKey}`,
           },
         },
@@ -82,13 +82,13 @@ Rules:
       const content = response.data.choices[0]?.message?.content;
       if (!content) {
         throw new HttpException(
-          'No response from AI service',
+          "No response from AI service",
           HttpStatus.BAD_GATEWAY,
         );
       }
 
       const generatedForm = JSON.parse(content) as GeneratedForm;
-      
+
       // Validate and sanitize the response
       return this.validateAndSanitizeForm(generatedForm);
     } catch (error) {
@@ -99,12 +99,13 @@ Rules:
       if (axios.isAxiosError(error)) {
         const status = error.response?.status || HttpStatus.BAD_GATEWAY;
         const message =
-          error.response?.data?.message || 'Failed to communicate with AI service';
+          error.response?.data?.message ||
+          "Failed to communicate with AI service";
         throw new HttpException(message, status);
       }
 
       throw new HttpException(
-        'Failed to generate form',
+        "Failed to generate form",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -112,12 +113,12 @@ Rules:
 
   private validateAndSanitizeForm(form: GeneratedForm): GeneratedForm {
     // Ensure name exists
-    if (!form.name || typeof form.name !== 'string') {
-      form.name = 'Generated Form';
+    if (!form.name || typeof form.name !== "string") {
+      form.name = "Generated Form";
     }
 
     // Generate slug if missing or invalid
-    if (!form.slug || typeof form.slug !== 'string') {
+    if (!form.slug || typeof form.slug !== "string") {
       form.slug = this.generateSlug(form.name);
     } else {
       form.slug = this.generateSlug(form.slug);
@@ -129,7 +130,7 @@ Rules:
     }
 
     form.fields = form.fields
-      .filter((field) => field && typeof field === 'object')
+      .filter((field) => field && typeof field === "object")
       .map((field) => this.sanitizeField(field));
 
     return form;
@@ -143,8 +144,8 @@ Rules:
     }
 
     // Ensure label
-    if (!field.label || typeof field.label !== 'string') {
-      field.label = 'Untitled Field';
+    if (!field.label || typeof field.label !== "string") {
+      field.label = "Untitled Field";
     }
 
     // Ensure required is boolean
@@ -154,15 +155,15 @@ Rules:
     if (field.type === FieldType.DROPDOWN) {
       if (!Array.isArray(field.options) || field.options.length === 0) {
         field.options = [
-          { value: 'option1', label: 'Option 1' },
-          { value: 'option2', label: 'Option 2' },
+          { value: "option1", label: "Option 1" },
+          { value: "option2", label: "Option 2" },
         ];
       } else {
         field.options = field.options
-          .filter((opt) => opt && typeof opt === 'object')
+          .filter((opt) => opt && typeof opt === "object")
           .map((opt) => ({
-            value: String(opt.value || 'option'),
-            label: String(opt.label || opt.value || 'Option'),
+            value: String(opt.value || "option"),
+            label: String(opt.label || opt.value || "Option"),
           }));
       }
     } else {
@@ -175,9 +176,8 @@ Rules:
   private generateSlug(input: string): string {
     return input
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
       .substring(0, 255);
   }
 }
-

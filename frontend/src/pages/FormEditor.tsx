@@ -255,35 +255,33 @@ export default function FormEditor() {
   };
 
   const renderFieldEditor = (editingField: Field | null) => {
-    return (<div
-      className="modal-overlay"
-      onClick={() => setShowFieldEditor(false)}
-    >
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <FieldEditor
-          field={editingField}
-          onSave={handleSaveField}
-          onCancel={() => {
-            setShowFieldEditor(false);
-            setEditingField(null);
-          }}
-        />
+    return (
+      <div className="modal-overlay" onClick={() => setShowFieldEditor(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <FieldEditor
+            field={editingField}
+            onSave={handleSaveField}
+            onCancel={() => {
+              setShowFieldEditor(false);
+              setEditingField(null);
+            }}
+          />
+        </div>
       </div>
-    </div>)
+    );
   };
 
   const renderAIGenerator = () => {
-    return (<div
-      className="modal-overlay"
-      onClick={() => setShowAIGenerator(false)}
-    >
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <AIGenerator
-          onGenerate={handleAIGenerate}
-          onCancel={() => setShowAIGenerator(false)}
-        />
+    return (
+      <div className="modal-overlay" onClick={() => setShowAIGenerator(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <AIGenerator
+            onGenerate={handleAIGenerate}
+            onCancel={() => setShowAIGenerator(false)}
+          />
+        </div>
       </div>
-    </div>)
+    );
   };
 
   const renderConfirmDialog = () => {

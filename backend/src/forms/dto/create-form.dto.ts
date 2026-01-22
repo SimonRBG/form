@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MaxLength, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, Matches } from "class-validator";
 
 export class CreateFormDto {
   @IsString()
@@ -10,8 +10,7 @@ export class CreateFormDto {
   @IsNotEmpty()
   @MaxLength(255)
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-    message: 'Slug must be lowercase with hyphens only (e.g., my-form-name)',
+    message: "Slug must be lowercase with hyphens only (e.g., my-form-name)",
   })
   slug: string;
 }
-

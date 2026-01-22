@@ -1,5 +1,4 @@
-export * from './ai.module';
-export * from './ai.service';
-export * from './ai.controller';
-export * from './dto/generate-form.dto';
-
+export * from "./ai.module";
+export * from "./ai.service";
+export * from "./ai.controller";
+export * from "./dto/generate-form.dto";

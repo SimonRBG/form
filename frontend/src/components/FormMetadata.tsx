@@ -33,14 +33,15 @@ export default function FormMetadata({
   const handleNameChange = (newName: string) => {
     const trimmedName = newName.trim();
     setFormName(newName);
-    
+
     // Auto-generate slug if slug is empty or was auto-generated
-    const newSlug = !formSlug || formSlug === generateSlug(formName) 
-      ? generateSlug(trimmedName)
-      : formSlug;
-    
+    const newSlug =
+      !formSlug || formSlug === generateSlug(formName)
+        ? generateSlug(trimmedName)
+        : formSlug;
+
     setFormSlug(newSlug);
-    
+
     // Update parent immediately with new values
     if (trimmedName && newSlug.trim()) {
       onSave(trimmedName, newSlug.trim());
@@ -50,7 +51,7 @@ export default function FormMetadata({
   const handleSlugChange = (newSlug: string) => {
     const trimmedSlug = newSlug.trim();
     setFormSlug(newSlug);
-    
+
     // Update parent immediately with new values
     if (formName.trim() && trimmedSlug) {
       onSave(formName.trim(), trimmedSlug);

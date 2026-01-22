@@ -5,7 +5,7 @@ import {
   Matches,
   IsArray,
   IsUUID,
-} from 'class-validator';
+} from "class-validator";
 
 export class UpdateFormDto {
   @IsString()
@@ -17,13 +17,12 @@ export class UpdateFormDto {
   @IsOptional()
   @MaxLength(255)
   @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-    message: 'Slug must be lowercase with hyphens only (e.g., my-form-name)',
+    message: "Slug must be lowercase with hyphens only (e.g., my-form-name)",
   })
   slug?: string;
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   @IsOptional()
   fieldOrder?: string[];
 }
-

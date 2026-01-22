@@ -7,10 +7,9 @@ import { useFormListStore } from "../stores/formList";
  */
 
 export const formListActions = {
-
   loadForms: async (): Promise<void> => {
     const store = useFormListStore.getState();
-    
+
     try {
       store.setLoading(true);
       const data = await api.forms.list();
@@ -26,7 +25,7 @@ export const formListActions = {
 
   deleteForm: async (formId: string): Promise<void> => {
     const store = useFormListStore.getState();
-    
+
     try {
       await api.forms.delete(formId);
       store.deleteForm(formId);
@@ -37,4 +36,3 @@ export const formListActions = {
     }
   },
 };
-

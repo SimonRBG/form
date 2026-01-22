@@ -7,7 +7,9 @@ import { GenerateFormDto, GeneratedFormResponse } from "../types";
  */
 
 export const aiActions = {
-  generateForm: async (data: GenerateFormDto): Promise<GeneratedFormResponse> => {
+  generateForm: async (
+    data: GenerateFormDto,
+  ): Promise<GeneratedFormResponse> => {
     try {
       const result = await api.ai.generateForm(data);
       return result;
@@ -17,4 +19,3 @@ export const aiActions = {
     }
   },
 };
-

@@ -5,7 +5,7 @@ A full-stack form administration application with AI-powered form generation cap
 ## Tech Stack
 
 - **Backend**: NestJS with PostgreSQL (TypeORM)
-- **Frontend**: Vite  + React
+- **Frontend**: Vite + React
 - **AI Integration**: Mistral AI API for intelligent form generation
 
 ## Project Structure
@@ -73,7 +73,6 @@ cd backend
 cp .env.sample .env
 ```
 
-
 Contact the administrator to obtain the remote environment values. This ensures no local configuration is required and maintains consistency across environments.
 
 ### 3. Run Development Servers
@@ -98,14 +97,14 @@ You can open http://localhost:5173 and enjoy the app!
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start both backend and frontend in development mode |
-| `npm run dev:backend` | Start backend in watch mode |
-| `npm run dev:frontend` | Start frontend dev server |
-| `npm run build` | Build both workspaces |
-| `npm run test` | Run tests in all workspaces |
-| `npm run lint` | Run linting in all workspaces |
+| Command                | Description                                         |
+| ---------------------- | --------------------------------------------------- |
+| `npm run dev`          | Start both backend and frontend in development mode |
+| `npm run dev:backend`  | Start backend in watch mode                         |
+| `npm run dev:frontend` | Start frontend dev server                           |
+| `npm run build`        | Build both workspaces                               |
+| `npm run test`         | Run tests in all workspaces                         |
+| `npm run lint`         | Run linting in all workspaces                       |
 
 ## Features
 
@@ -132,10 +131,10 @@ You can open http://localhost:5173 and enjoy the app!
 ### 3. React + Vite
 
 - **Fast Build Configuration**: Very easy and fast build setup
-- **Zustand State Management**: 
+- **Zustand State Management**:
   - Simplicity for medium-sized applications
   - Lower boilerplate compared to pure Redux (which offers higher scalability)
-- **Flux Pattern**: 
+- **Flux Pattern**:
   - Actions separate business logic from state management (stores) and component rendering
   - Multiple stores and reducers for improved readability and maintainability
 
@@ -145,5 +144,3 @@ You can open http://localhost:5173 and enjoy the app!
 - **French Language Support**: Native French language capabilities 😉
 - **Free Tier**: Free to use for development and POC
 - **Perfect for POC**: Ideal for proof of concept and rapid prototyping
-
-

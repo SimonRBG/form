@@ -5,10 +5,7 @@ interface AlertDialogProps {
   onClose: () => void;
 }
 
-export default function AlertDialog({
-  message,
-  onClose,
-}: AlertDialogProps) {
+export default function AlertDialog({ message, onClose }: AlertDialogProps) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>

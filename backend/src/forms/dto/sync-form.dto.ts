@@ -1,5 +1,11 @@
-import { IsString, IsArray, IsBoolean, IsOptional, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  ValidateNested,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 class SyncFieldDto {
   @IsString()
@@ -35,4 +41,3 @@ export class SyncFormDto {
   @IsString({ each: true })
   fieldOrder: string[];
 }
-
