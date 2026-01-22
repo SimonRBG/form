@@ -113,7 +113,35 @@ npm run dev:frontend
 - **AI Generation**: Generate form structures from natural language descriptions
 - **Publishing**: Control form visibility with publish/unpublish
 
-## License
+## Technical Choices
 
-UNLICENSED
+### 1. PostgreSQL
+
+- **Structured Data**: Forms require structured data storage, no need for document flexibility
+- **Cloud-Ready**: Web services for form creation always rely on cloud infrastructure
+- **TypeORM**: Straightforward ORM that abstracts database complexity
+
+### 2. NestJS
+
+- **TypeScript First**: Full TypeScript support with strong typing
+- **Structured Framework**: Opinionated structure for maintainability
+- **Layered Architecture**: Clear separation of concerns (controllers, services, repositories)
+
+### 3. React + Vite
+
+- **Fast Build Configuration**: Very easy and fast build setup
+- **Zustand State Management**: 
+  - Simplicity for medium-sized applications
+  - Lower boilerplate compared to pure Redux (which offers higher scalability)
+- **Flux Pattern**: 
+  - Actions separate business logic from state management (stores) and component rendering
+  - Multiple stores and reducers for improved readability and maintainability
+
+### 4. Mistral AI API
+
+- **LLM on Demand**: On-demand language model service
+- **French Language Support**: Native French language capabilities 😉
+- **Free Tier**: Free to use for development and POC
+- **Perfect for POC**: Ideal for proof of concept and rapid prototyping
+
 
